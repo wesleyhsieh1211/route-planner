@@ -3,21 +3,19 @@ import * as XLSX from 'xlsx';
 import { Upload, MapPin, Copy, Check } from 'lucide-react';
 
 const AddressClassifier = () => {
-  const [startPoint, setStartPoint] = useState('');
+  const [startPoint, setStartPoint] = useState('台中市西屯區中清路三段225巷12弄58號');
   const [results, setResults] = useState({
     taichungNorth: [],
     taichungSouth: [],
-    generalNorth: [],
-    generalSouth: [],
-    southCombined: []
+    southCombinedChanghua: [],
+    southCombinedNantou: [],
+    southCombinedAll: []
   });
   const [mapUrl, setMapUrl] = useState('');
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
 
   // 分類定義
-  const northRegions = ['苗栗', '新竹', '桃園', '台北', '臺北', '新北', '基隆', '宜蘭'];
-  const southRegions = ['南投', '雲林', '嘉義', '台南', '臺南', '高雄', '屏東'];
   const taichungNorthDistricts = ['北區', '西區', '北屯區', '西屯區', '中區', '東區', '清水區', '梧棲區', '大甲區', '大安區', '外埔區', '后里區', '神岡區', '大雅區', '潭子區', '豐原區', '沙鹿區'];
   const taichungSouthDistricts = ['南區', '南屯區', '大里區', '太平區', '烏日區', '大肚區', '龍井區', '霧峰區', '新社區', '東勢區', '石岡區', '和平區'];
 
@@ -45,9 +43,9 @@ const AddressClassifier = () => {
           const classified = {
             taichungNorth: [],
             taichungSouth: [],
-            generalNorth: [],
-            generalSouth: [],
-            southCombined: []
+            southCombinedChanghua: [],
+            southCombinedNantou: [],
+            southCombinedAll: []
           };
 
           jsonData.forEach(row => {
@@ -68,14 +66,16 @@ const AddressClassifier = () => {
                 classified.taichungNorth.push(address);
               } else if (taichungSouthDistricts.some(district => address.includes(district))) {
                 classified.taichungSouth.push(address);
-                classified.southCombined.push(address);
+                classified.southCombinedChanghua.push(address);
+                classified.southCombinedNantou.push(address);
+                classified.southCombinedAll.push(address);
               }
             } else if (address.includes('彰化')) {
-              classified.southCombined.push(address);
-            } else if (northRegions.some(region => address.includes(region))) {
-              classified.generalNorth.push(address);
-            } else if (southRegions.some(region => address.includes(region))) {
-              classified.generalSouth.push(address);
+              classified.southCombinedChanghua.push(address);
+              classified.southCombinedAll.push(address);
+            } else if (address.includes('南投')) {
+              classified.southCombinedNantou.push(address);
+              classified.southCombinedAll.push(address);
             }
           });
 
@@ -86,9 +86,9 @@ const AddressClassifier = () => {
           Object.entries({
             '台中市北區': classified.taichungNorth,
             '台中市南區': classified.taichungSouth,
-            '台中以北': classified.generalNorth,
-            '台中以南': classified.generalSouth,
-            '台中南區+彰化': classified.southCombined
+            '台中南區+彰化': classified.southCombinedChanghua,
+            '台中南區+南投': classified.southCombinedNantou,
+            '台中南區+彰化+南投': classified.southCombinedAll
           }).forEach(([name, addresses]) => {
             if (addresses.length > 0) {
               const ws = XLSX.utils.json_to_sheet(
@@ -158,27 +158,46 @@ const AddressClassifier = () => {
   };
 
   return (
-    <div className="p-4 max-w-6xl mx-auto bg-gradient-to-r from-blue-50 to-blue-100 min-h-screen">
-      <div className="bg-white/90 backdrop-blur rounded-lg shadow-lg p-6">
+    <div className="p-4 max-w-6xl mx-auto bg-sky-50 min-h-screen">
+      <div className="bg-white rounded-lg shadow-lg p-6">
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            {/* Logo 預留位置 - 可以替換為實際的 logo */}
-            <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">
-              艾美
-            </div>
+            <svg viewBox="0 0 240 120" className="w-24 h-12">
+              <g transform="translate(20, 25)">
+                {/* Logo symbol */}
+                <g transform="scale(0.8)">
+                  {/* Left stripe */}
+                  <rect x="0" y="0" width="15" height="70" transform="skew(-25)" fill="#333333"/>
+                  {/* Middle stripe */}
+                  <rect x="25" y="0" width="15" height="70" transform="skew(-25)" fill="#7FB9BD"/>
+                  {/* Right stripe */}
+                  <rect x="50" y="0" width="15" height="70" transform="skew(-25)" fill="#333333"/>
+                </g>
+                {/* IMAY text */}
+                <text x="85" y="45" fontSize="36" fontFamily="Arial" fontWeight="bold" fill="#333333">IMAY</text>
+              </g>
+            </svg>
             <h1 className="text-2xl font-bold mb-0">艾美建材路線規劃系統</h1>
           </div>
         </div>
         <div className="space-y-4">
           {/* 起點輸入 */}
           <div className="flex items-center gap-2">
-            <input
-              type="text"
-              placeholder="請輸入起點地址（例如：公司地址）"
-              className="flex-1 p-2 border rounded"
-              value={startPoint}
-              onChange={(e) => setStartPoint(e.target.value)}
-            />
+            <div className="flex-1 flex gap-2">
+              <input
+                type="text"
+                placeholder="請輸入起點地址"
+                className="flex-1 p-2 border rounded"
+                value={startPoint}
+                onChange={(e) => setStartPoint(e.target.value)}
+              />
+              <button
+                onClick={() => setStartPoint('台中市西屯區中清路三段225巷12弄58號')}
+                className="px-4 py-2 bg-pink-300 text-white rounded hover:bg-pink-400"
+              >
+                使用公司地址
+              </button>
+            </div>
             <MapPin className="text-gray-400" />
           </div>
 
@@ -243,27 +262,27 @@ const AddressClassifier = () => {
           {/* 分類結果 */}
           <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
             {[
-              { key: 'taichungNorth', title: '台中市北區', color: 'blue' },
-              { key: 'taichungSouth', title: '台中市南區', color: 'green' },
-              { key: 'generalNorth', title: '台中以北', color: 'yellow' },
-              { key: 'generalSouth', title: '台中以南', color: 'pink' },
-              { key: 'southCombined', title: '台中南區+彰化', color: 'purple' }
+              { key: 'taichungNorth', title: '台中市北區' },
+              { key: 'taichungSouth', title: '台中市南區' },
+              { key: 'southCombinedChanghua', title: '台中南區+彰化' },
+              { key: 'southCombinedNantou', title: '台中南區+南投' },
+              { key: 'southCombinedAll', title: '台中南區+彰化+南投' }
             ].map(({ key, title }) => (
               <div key={key} className="bg-white rounded-lg shadow border">
                 <div className="flex justify-between items-center p-4 border-b">
                   <h3 className="text-lg font-semibold">
-                    {title} ({results[key].length})
+                    {title} ({results[key]?.length || 0})
                   </h3>
                   <button
                     onClick={() => generateMapUrl(results[key])}
-                    disabled={results[key].length === 0}
+                    disabled={!results[key] || results[key].length === 0}
                     className={`px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed`}
                   >
                     產生路線網址
                   </button>
                 </div>
                 <div className="p-4 max-h-60 overflow-auto">
-                  {results[key].map((address, index) => (
+                  {results[key]?.map((address, index) => (
                     <div key={index} className="text-sm mb-1 p-2 bg-gray-50 rounded">
                       {address}
                     </div>
