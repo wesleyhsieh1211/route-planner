@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import * as XLSX from 'xlsx';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Button } from '../components/ui/button';
+import { Card, CardHeader, CardTitle, CardContent } from '/components/ui/card';
+import { Button } from '/components/ui/button';
 import { Upload, MapPin, Copy, Check } from 'lucide-react';
 
 const AddressClassifier = () => {
