@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
 import * as XLSX from 'xlsx';
+<<<<<<< HEAD
 import { Card, CardHeader, CardTitle, CardContent } from '/components/ui/card';
 import { Button } from '/components/ui/button';
+=======
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+>>>>>>> b24a971070adf4b8648e35a8e538aa15de943202
 import { Upload, MapPin, Copy, Check } from 'lucide-react';
 
 const AddressClassifier = () => {
@@ -11,7 +16,11 @@ const AddressClassifier = () => {
     taichungSouth: [],
     generalNorth: [],
     generalSouth: [],
+<<<<<<< HEAD
     southCombined: []
+=======
+    southCombined: []  // 新增：彰化和台中南區的合併列表
+>>>>>>> b24a971070adf4b8648e35a8e538aa15de943202
   });
   const [mapUrl, setMapUrl] = useState('');
   const [error, setError] = useState('');
@@ -19,17 +28,68 @@ const AddressClassifier = () => {
 
   // 分類定義
   const northRegions = ['苗栗', '新竹', '桃園', '台北', '臺北', '新北', '基隆', '宜蘭'];
+<<<<<<< HEAD
   const southRegions = ['南投', '雲林', '嘉義', '台南', '臺南', '高雄', '屏東'];
   const taichungNorthDistricts = ['北區', '西區', '北屯區', '西屯區', '中區', '東區', '清水區', '梧棲區', '大甲區', '大安區'];
   const taichungSouthDistricts = ['南區', '南屯區', '大里區', '太平區', '烏日區', '大肚區', '龍井區', '霧峰區'];
 
+=======
+  const southRegions = ['南投', '雲林', '嘉義', '台南', '臺南', '高雄', '屏東']; // 移除彰化
+  const taichungNorthDistricts = ['北區', '西區', '北屯區', '西屯區', '中區', '東區', '清水區', '梧棲區', '大甲區', '大安區'];
+  const taichungSouthDistricts = ['南區', '南屯區', '大里區', '太平區', '烏日區', '大肚區', '龍井區', '霧峰區'];
+
+  // 產生路線網址
+  const generateMapUrl = (addresses) => {
+    if (!addresses || addresses.length === 0) return;
+
+    let url = 'https://www.google.com/maps/dir/';
+    
+    if (startPoint) {
+      url += encodeURIComponent(startPoint) + '/';
+    }
+
+    // 取前10個地址（Google Maps限制）
+    const limitedAddresses = addresses.slice(0, 10);
+    limitedAddresses.forEach(address => {
+      url += encodeURIComponent(address) + '/';
+    });
+
+    setMapUrl(url);
+
+    if (addresses.length > 10) {
+      setError('注意：由於 Google Maps 限制，只能顯示前 10 個地點');
+    }
+  };
+
+  // 複製網址功能
+  const copyUrl = () => {
+    try {
+      const textArea = document.createElement('textarea');
+      textArea.value = mapUrl;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      alert('複製失敗，請手動複製網址');
+    }
+  };
+
+  // 處理檔案上傳
+>>>>>>> b24a971070adf4b8648e35a8e538aa15de943202
   const handleFileUpload = (event) => {
     try {
       setError('');
       setMapUrl('');
       const file = event.target.files[0];
+<<<<<<< HEAD
       if (!file) return;
 
+=======
+>>>>>>> b24a971070adf4b8648e35a8e538aa15de943202
       const reader = new FileReader();
 
       reader.onload = (e) => {
@@ -53,6 +113,7 @@ const AddressClassifier = () => {
           };
 
           jsonData.forEach(row => {
+<<<<<<< HEAD
             if (row['工程名稱']?.includes('安-')) return;
 
             const address = row['工程地址'];
@@ -71,6 +132,29 @@ const AddressClassifier = () => {
               classified.generalNorth.push(address);
             } else if (southRegions.some(region => address.includes(region))) {
               classified.generalSouth.push(address);
+=======
+            const address = row['工程地址'];
+            if (address) {
+              // 處理台中市地址
+              if (address.includes('台中') || address.includes('臺中')) {
+                if (taichungNorthDistricts.some(district => address.includes(district))) {
+                  classified.taichungNorth.push(address);
+                } else if (taichungSouthDistricts.some(district => address.includes(district))) {
+                  classified.taichungSouth.push(address);
+                  classified.southCombined.push(address); // 加入合併列表
+                }
+              }
+              // 處理彰化地址
+              else if (address.includes('彰化')) {
+                classified.southCombined.push(address); // 加入合併列表
+              }
+              // 處理其他地區
+              else if (northRegions.some(region => address.includes(region))) {
+                classified.generalNorth.push(address);
+              } else if (southRegions.some(region => address.includes(region))) {
+                classified.generalSouth.push(address);
+              }
+>>>>>>> b24a971070adf4b8648e35a8e538aa15de943202
             }
           });
 
@@ -92,6 +176,7 @@ const AddressClassifier = () => {
     }
   };
 
+<<<<<<< HEAD
   const generateMapUrl = (addresses) => {
     if (!addresses || addresses.length === 0) {
       setError('沒有可規劃的地址');
@@ -135,6 +220,8 @@ const AddressClassifier = () => {
     }
   };
 
+=======
+>>>>>>> b24a971070adf4b8648e35a8e538aa15de943202
   return (
     <div className="p-4 max-w-6xl mx-auto">
       <Card>
@@ -155,7 +242,11 @@ const AddressClassifier = () => {
               <MapPin className="text-gray-400" />
             </div>
 
+<<<<<<< HEAD
             {/* 檔案上傳 */}
+=======
+            {/* 檔案上傳區域 */}
+>>>>>>> b24a971070adf4b8648e35a8e538aa15de943202
             <div className="flex items-center justify-center w-full">
               <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
                 <div className="flex flex-col items-center justify-center pt-5 pb-6">
@@ -174,6 +265,7 @@ const AddressClassifier = () => {
               </label>
             </div>
 
+<<<<<<< HEAD
             {/* 錯誤訊息 */}
             {error && (
               <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
@@ -185,6 +277,12 @@ const AddressClassifier = () => {
             {mapUrl && (
               <div className="bg-gray-50 p-4 rounded border">
                 <div className="font-semibold mb-2">路線規劃連結：</div>
+=======
+            {/* 顯示路線網址和複製按鈕 */}
+            {mapUrl && (
+              <div className="bg-gray-50 p-4 rounded border">
+                <div className="font-semibold mb-2">路線規劃網址：</div>
+>>>>>>> b24a971070adf4b8648e35a8e538aa15de943202
                 <div className="flex gap-2">
                   <input
                     type="text"
@@ -213,7 +311,18 @@ const AddressClassifier = () => {
               </div>
             )}
 
+<<<<<<< HEAD
             {/* 分類結果 */}
+=======
+            {/* 錯誤訊息 */}
+            {error && (
+              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                {error}
+              </div>
+            )}
+
+            {/* 分類結果和按鈕 */}
+>>>>>>> b24a971070adf4b8648e35a8e538aa15de943202
             <div className="mt-6 grid grid-cols-2 gap-4">
               {[
                 { key: 'taichungNorth', title: '台中市北區', color: 'blue' },
@@ -222,8 +331,13 @@ const AddressClassifier = () => {
                 { key: 'generalSouth', title: '台中以南', color: 'pink' },
                 { key: 'southCombined', title: '台中南區+彰化', color: 'purple' }
               ].map(({ key, title, color }) => (
+<<<<<<< HEAD
                 <div key={key} className="bg-white rounded-lg shadow">
                   <div className="flex justify-between items-center p-4 border-b">
+=======
+                <div key={key}>
+                  <div className="flex justify-between items-center mb-2">
+>>>>>>> b24a971070adf4b8648e35a8e538aa15de943202
                     <h3 className="text-lg font-semibold">
                       {title} ({results[key].length})
                     </h3>
@@ -234,11 +348,17 @@ const AddressClassifier = () => {
                       產生路線網址
                     </Button>
                   </div>
+<<<<<<< HEAD
                   <div className="p-4 max-h-60 overflow-auto">
                     {results[key].map((address, index) => (
                       <div key={index} className="text-sm mb-1 p-2 bg-gray-50 rounded">
                         {address}
                       </div>
+=======
+                  <div className={`bg-${color}-50 p-4 rounded-lg max-h-60 overflow-auto`}>
+                    {results[key].map((address, index) => (
+                      <div key={index} className="text-sm mb-1">{address}</div>
+>>>>>>> b24a971070adf4b8648e35a8e538aa15de943202
                     ))}
                   </div>
                 </div>
