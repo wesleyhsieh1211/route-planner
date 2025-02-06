@@ -19,6 +19,26 @@ const AddressClassifier = () => {
   const taichungNorthDistricts = ['北區', '西區', '北屯區', '西屯區', '中區', '東區', '清水區', '梧棲區', '大甲區', '大安區', '外埔區', '后里區', '神岡區', '大雅區', '潭子區', '豐原區', '沙鹿區'];
   const taichungSouthDistricts = ['南區', '南屯區', '大里區', '太平區', '烏日區', '大肚區', '龍井區', '霧峰區', '新社區', '東勢區', '石岡區', '和平區'];
 
+  const cleanAddress = (address) => {
+    // 使用正則表達式匹配到最後一個包含「號」的完整部分
+    const match = address.match(/(.*?[0-9]+[巷弄])?.*?[0-9]+號/);
+    if (match) {
+      return match[0];
+    }
+    return address;
+  };
+
+  const addToClassifiedList = (list, addressInfo) => {
+    // 檢查是否已經存在相同的地址
+    const isDuplicate = list.some(item => 
+      item.original === addressInfo.original || 
+      item.cleaned === addressInfo.cleaned
+    );
+    if (!isDuplicate) {
+      list.push(addressInfo);
+    }
+  };
+
   const handleFileUpload = (event) => {
     try {
       setError('');
@@ -58,24 +78,27 @@ const AddressClassifier = () => {
             if (row['備註']?.includes('皓') || 
                 row['備註']?.includes('義')) return;
 
-            const address = row['工程地址'];
-            if (!address) return;
+            const originalAddress = row['工程地址'];
+            if (!originalAddress) return;
 
-            if (address.includes('台中') || address.includes('臺中')) {
-              if (taichungNorthDistricts.some(district => address.includes(district))) {
-                classified.taichungNorth.push(address);
-              } else if (taichungSouthDistricts.some(district => address.includes(district))) {
-                classified.taichungSouth.push(address);
-                classified.southCombinedChanghua.push(address);
-                classified.southCombinedNantou.push(address);
-                classified.southCombinedAll.push(address);
+            const cleanedAddress = cleanAddress(originalAddress);
+            const addressInfo = { original: originalAddress, cleaned: cleanedAddress };
+
+            if (originalAddress.includes('台中') || originalAddress.includes('臺中')) {
+              if (taichungNorthDistricts.some(district => originalAddress.includes(district))) {
+                addToClassifiedList(classified.taichungNorth, addressInfo);
+              } else if (taichungSouthDistricts.some(district => originalAddress.includes(district))) {
+                addToClassifiedList(classified.taichungSouth, addressInfo);
+                addToClassifiedList(classified.southCombinedChanghua, addressInfo);
+                addToClassifiedList(classified.southCombinedNantou, addressInfo);
+                addToClassifiedList(classified.southCombinedAll, addressInfo);
               }
-            } else if (address.includes('彰化')) {
-              classified.southCombinedChanghua.push(address);
-              classified.southCombinedAll.push(address);
-            } else if (address.includes('南投')) {
-              classified.southCombinedNantou.push(address);
-              classified.southCombinedAll.push(address);
+            } else if (originalAddress.includes('彰化')) {
+              addToClassifiedList(classified.southCombinedChanghua, addressInfo);
+              addToClassifiedList(classified.southCombinedAll, addressInfo);
+            } else if (originalAddress.includes('南投')) {
+              addToClassifiedList(classified.southCombinedNantou, addressInfo);
+              addToClassifiedList(classified.southCombinedAll, addressInfo);
             }
           });
 
@@ -92,7 +115,10 @@ const AddressClassifier = () => {
           }).forEach(([name, addresses]) => {
             if (addresses.length > 0) {
               const ws = XLSX.utils.json_to_sheet(
-                addresses.map(addr => ({ '工程地址': addr }))
+                addresses.map(addr => ({ 
+                  '原始地址': addr.original,
+                  '整理後地址': addr.cleaned
+                }))
               );
               XLSX.utils.book_append_sheet(wb, ws, name);
             }
@@ -127,9 +153,10 @@ const AddressClassifier = () => {
       url += encodeURIComponent(startPoint) + '/';
     }
 
+    // 使用整理後的地址（cleaned）來產生路線
     const limitedAddresses = addresses.slice(0, 10);
-    limitedAddresses.forEach(address => {
-      url += encodeURIComponent(address) + '/';
+    limitedAddresses.forEach(addressInfo => {
+      url += encodeURIComponent(addressInfo.cleaned) + '/';
     });
 
     setMapUrl(url);
@@ -282,9 +309,10 @@ const AddressClassifier = () => {
                   </button>
                 </div>
                 <div className="p-4 max-h-60 overflow-auto">
-                  {results[key]?.map((address, index) => (
+                  {results[key]?.map((addressInfo, index) => (
                     <div key={index} className="text-sm mb-1 p-2 bg-gray-50 rounded">
-                      {address}
+                      <div className="text-gray-600">原始：{addressInfo.original}</div>
+                      <div className="font-medium">整理：{addressInfo.cleaned}</div>
                     </div>
                   ))}
                 </div>
